@@ -304,28 +304,57 @@ func (m *mkcert) newCA() {
 
 	skid := sha1.Sum(spki.SubjectPublicKey.Bytes)
 
-	tpl := &x509.Certificate{
-		SerialNumber: randomSerialNumber(),
-		Subject: pkix.Name{
-			Organization:       []string{"mkcert development CA"},
-			OrganizationalUnit: []string{userAndHostname},
+    var tpl *x509.Certificate;
 
-			// The CommonName is required by iOS to show the certificate in the
-			// "Certificate Trust Settings" menu.
-			// https://github.com/FiloSottile/mkcert/issues/47
-			CommonName: "mkcert " + userAndHostname,
-		},
-		SubjectKeyId: skid[:],
+    if m.crlPath != "" {
+        tpl = &x509.Certificate{
+	        SerialNumber: randomSerialNumber(),
+	        Subject: pkix.Name{
+		        Organization:       []string{"Softgent development CA"},
+		        OrganizationalUnit: []string{userAndHostname},
 
-		NotAfter:  time.Now().AddDate(10, 0, 0),
-		NotBefore: time.Now(),
+		        // The CommonName is required by iOS to show the certificate in the
+		        // "Certificate Trust Settings" menu.
+		        // https://github.com/FiloSottile/mkcert/issues/47
+		        CommonName: "mkcert " + userAndHostname,
+	        },
+	        SubjectKeyId: skid[:],
 
-		KeyUsage: x509.KeyUsageCertSign,
+	        NotAfter:  time.Now().AddDate(10, 0, 0),
+	        NotBefore: time.Now(),
 
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-		MaxPathLenZero:        true,
-	}
+	        KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageKeyAgreement | x509.KeyUsageDigitalSignature,
+
+	        BasicConstraintsValid: true,
+	        IsCA:                  true,
+	        MaxPathLenZero:        true,
+            CRLDistributionPoints: []string{m.crlPath},
+        }
+    } else {
+        tpl = &x509.Certificate{
+		    SerialNumber: randomSerialNumber(),
+		    Subject: pkix.Name{
+			    Organization:       []string{"Softgent development CA"},
+			    OrganizationalUnit: []string{userAndHostname},
+
+			    // The CommonName is required by iOS to show the certificate in the
+			    // "Certificate Trust Settings" menu.
+			    // https://github.com/FiloSottile/mkcert/issues/47
+			    CommonName: "mkcert " + userAndHostname,
+		    },
+		    SubjectKeyId: skid[:],
+
+		    NotAfter:  time.Now().AddDate(10, 0, 0),
+		    NotBefore: time.Now(),
+
+		    KeyUsage: x509.KeyUsageCertSign,
+
+		    BasicConstraintsValid: true,
+		    IsCA:                  true,
+		    MaxPathLenZero:        true,
+	    }
+    }
+
 
 	cert, err := x509.CreateCertificate(rand.Reader, tpl, tpl, pub, priv)
 	fatalIfErr(err, "failed to generate CA certificate")

@@ -65,6 +65,10 @@ const advancedUsage = `Advanced options:
 	    Generate a certificate based on the supplied CSR. Conflicts with
 	    all other flags and arguments except -install and -cert-file.
 
+	-crl URL
+	    Generate a certificate crl and add distribution point to CA certificate.
+        Conflicts with all other flags and arguments except -install and -cert-file.
+
 	-CAROOT
 	    Print the CA certificate and key storage location.
 
@@ -95,6 +99,7 @@ func main() {
 		helpFlag      = flag.Bool("help", false, "")
 		carootFlag    = flag.Bool("CAROOT", false, "")
 		csrFlag       = flag.String("csr", "", "")
+        crlFlag       = flag.String("crl", "", "")
 		certFileFlag  = flag.String("cert-file", "", "")
 		keyFileFlag   = flag.String("key-file", "", "")
 		p12FileFlag   = flag.String("p12-file", "", "")
@@ -140,7 +145,7 @@ func main() {
 	}
 	(&mkcert{
 		installMode: *installFlag, uninstallMode: *uninstallFlag, csrPath: *csrFlag,
-		pkcs12: *pkcs12Flag, ecdsa: *ecdsaFlag, client: *clientFlag,
+		crlPath: *crlFlag, pkcs12: *pkcs12Flag, ecdsa: *ecdsaFlag, client: *clientFlag,
 		certFile: *certFileFlag, keyFile: *keyFileFlag, p12File: *p12FileFlag,
 	}).Run(flag.Args())
 }
@@ -153,6 +158,7 @@ type mkcert struct {
 	pkcs12, ecdsa, client      bool
 	keyFile, certFile, p12File string
 	csrPath                    string
+	crlPath                    string
 
 	CAROOT string
 	caCert *x509.Certificate
