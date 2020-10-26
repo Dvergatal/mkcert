@@ -152,6 +152,7 @@ func main() {
 
 const rootName = "rootCA.pem"
 const rootKeyName = "rootCA-key.pem"
+const rootCRLName = "rootCA-crl.pem"
 
 type mkcert struct {
 	installMode, uninstallMode bool

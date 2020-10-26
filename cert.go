@@ -370,6 +370,23 @@ func (m *mkcert) newCA() {
 	fatalIfErr(err, "failed to save CA key")
 
 	log.Printf("Created a new local CA at \"%s\" 💥\n", m.CAROOT)
+
+    if m.crlPath != "" {
+        crlBytes, err := x509.CreateRevocationList(rand.Reader, &x509.RevocationList{
+            RevokedCertificates: nil,
+            Number: big.NewInt(0),
+            ThisUpdate: time.Now(),
+            NextUpdate: time.Now().AddDate(0,0, +30),
+        },
+        tpl,
+        priv.(crypto.Signer))
+        
+	    err = ioutil.WriteFile(filepath.Join(m.CAROOT, rootCRLName), pem.EncodeToMemory(
+		    &pem.Block{Type: "X509 CRL", Bytes: crlBytes}), 0400)
+    	fatalIfErr(err, "failed to save CRL for CA key")
+
+    	log.Printf("Created a new crl for local CA at \"%s\" 💥\n", m.CAROOT)
+    }
 }
 
 func (m *mkcert) caUniqueName() string {
